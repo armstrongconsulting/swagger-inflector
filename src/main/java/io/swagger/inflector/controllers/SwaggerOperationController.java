@@ -148,7 +148,7 @@ public class SwaggerOperationController extends ReflectionUtils implements Infle
 		if (consumes == null || consumes.isEmpty()) {
 			consumes = Arrays.asList("application/json");
 		}
-		
+
 		this.definitions = definitions;
 		this.validator = InputConverter.getInstance();
 		this.method = detectMethod(operation);
@@ -237,25 +237,29 @@ public class SwaggerOperationController extends ReflectionUtils implements Infle
 		List<Parameter> parameters = operation.getParameters();
 		final RequestContext requestContext = createContext(ctx);
 
-		if (ctx.getAcceptableMediaTypes() == null || ctx.getAcceptableMediaTypes().isEmpty()) {
+		if (Arrays.asList("post", "put", "patch").contains(ctx.getMethod()) && ctx.getAcceptableMediaTypes() == null || ctx.getAcceptableMediaTypes().isEmpty()) {
 			throw new ApiException(new ApiError().code(415).message("The following media-types are produced: '" + produces + "'. Please set your 'Accept' header accordingly."));
 		}
 
-		if (ctx.getMediaType() == null) {
+		if (Arrays.asList("post", "put", "patch").contains(ctx.getMethod()) && ctx.getMediaType() == null) {
 			throw new ApiException(new ApiError().code(415).message("The following media-types are accepted: '" + consumes + "'. Please set your 'Content-Type' header accordingly."));
 		}
 
-		List<String> acceptableMediaTypes = ctx.getAcceptableMediaTypes().stream()
-		        .filter(elt -> elt != null)
-		        .map(elt -> elt.toString())
-		        .collect(Collectors.toList());
-		
-		if (Collections.disjoint(acceptableMediaTypes, produces)) {
-			throw new ApiException(new ApiError().code(415).message("Your 'Accept' header contains the media type: '"+ ctx.getAcceptableMediaTypes() + "', but only the following media-types are produced: '" + produces + "'"));
+		if (ctx.getAcceptableMediaTypes() != null) {
+			List<String> acceptableMediaTypes = ctx.getAcceptableMediaTypes().stream()
+					.filter(elt -> elt != null)
+					.map(elt -> elt.toString())
+					.collect(Collectors.toList());
+
+			if (Collections.disjoint(acceptableMediaTypes, produces)) {
+				throw new ApiException(new ApiError().code(415).message("Your 'Accept' header contains the media type: '" + ctx.getAcceptableMediaTypes() + "', but only the following media-types are produced: '" + produces + "'"));
+			}
 		}
 
-		if (!consumes.contains(ctx.getMediaType().toString())) {
-			throw new ApiException(new ApiError().code(415).message("Your 'Content-Type' header contains the media type: '"+ ctx.getMediaType() + "', but only the following media-types are accepted: '" + consumes + "'"));
+		if (ctx.getMediaType() != null){
+			if (!consumes.contains(ctx.getMediaType().toString())) {
+				throw new ApiException(new ApiError().code(415).message("Your 'Content-Type' header contains the media type: '" + ctx.getMediaType() + "', but only the following media-types are accepted: '" + consumes + "'"));
+			}
 		}
 		String path = ctx.getUriInfo().getPath();
 		Map<String, Map<String, String>> formMap = new HashMap<String, Map<String, String>>();
