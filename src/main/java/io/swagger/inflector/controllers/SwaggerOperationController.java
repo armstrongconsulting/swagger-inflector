@@ -251,7 +251,7 @@ public class SwaggerOperationController extends ReflectionUtils implements Infle
 					.map(elt -> elt.toString())
 					.collect(Collectors.toList());
 
-			if (Collections.disjoint(acceptableMediaTypes, produces)) {
+			if (!acceptableMediaTypes.contains("*/*") && Collections.disjoint(acceptableMediaTypes, produces)) {
 				throw new ApiException(new ApiError().code(415).message("Your 'Accept' header contains the media type: '" + ctx.getAcceptableMediaTypes() + "', but only the following media-types are produced: '" + produces + "'"));
 			}
 		}
@@ -476,6 +476,7 @@ public class SwaggerOperationController extends ReflectionUtils implements Infle
 								if (ctx.hasEntity()) {
 									BodyParameter body = (BodyParameter) parameter;
 									o = EntityProcessorFactory.readValue(ctx.getMediaType(), ctx.getEntityStream(), cls);
+																		
 									if (o != null) {
 										validate(o, body.getSchema(), SchemaValidator.Direction.INPUT);
 									}

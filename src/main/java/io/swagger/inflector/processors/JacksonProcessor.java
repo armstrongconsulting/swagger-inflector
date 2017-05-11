@@ -16,18 +16,6 @@
 
 package io.swagger.inflector.processors;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import io.swagger.inflector.converters.ConversionException;
-import io.swagger.inflector.validators.ValidationError;
-import io.swagger.inflector.validators.ValidationMessage;
-import io.swagger.util.Json;
-import io.swagger.util.Yaml;
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.core.MediaType;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,16 +23,32 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.MediaType;
+
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+
+import io.swagger.inflector.converters.ConversionException;
+import io.swagger.inflector.validators.ValidationError;
+import io.swagger.inflector.validators.ValidationMessage;
+import io.swagger.util.Json;
+import io.swagger.util.Yaml;
+
 public class JacksonProcessor implements EntityProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(JacksonProcessor.class);
 
     public static MediaType APPLICATION_YAML_TYPE = new MediaType("application", "yaml");
-
+    public static MediaType APPLICATION_MERGE_PATCH_JSON_TYPE = new MediaType("application","merge-patch+json");
     private static XmlMapper XML = new XmlMapper();
     private static List<MediaType> SUPPORTED_TYPES = new ArrayList<>();
 
     static {
         SUPPORTED_TYPES.add(MediaType.APPLICATION_JSON_TYPE);
+        SUPPORTED_TYPES.add(APPLICATION_MERGE_PATCH_JSON_TYPE);
     }
 
     @Override
@@ -73,7 +77,7 @@ public class JacksonProcessor implements EntityProcessor {
     public Object process(MediaType mediaType, InputStream entityStream,
                           JavaType javaType) {
         try {
-            if (MediaType.APPLICATION_JSON_TYPE.isCompatible(mediaType)) {
+            if (APPLICATION_MERGE_PATCH_JSON_TYPE.isCompatible(mediaType) || MediaType.APPLICATION_JSON_TYPE.isCompatible(mediaType)) {
                 return Json.mapper().readValue(entityStream, javaType);
             }
             if (MediaType.APPLICATION_XML_TYPE.isCompatible(mediaType)) {
@@ -97,7 +101,7 @@ public class JacksonProcessor implements EntityProcessor {
                 IOUtils.copy(entityStream, outputStream);
                 return outputStream.toString();
             }
-            if (MediaType.APPLICATION_JSON_TYPE.isCompatible(mediaType)) {
+            if (APPLICATION_MERGE_PATCH_JSON_TYPE.isCompatible(mediaType) || MediaType.APPLICATION_JSON_TYPE.isCompatible(mediaType)) {
                 return Json.mapper().readValue(entityStream, cls);
             }
             if (MediaType.APPLICATION_XML_TYPE.isCompatible(mediaType)) {
