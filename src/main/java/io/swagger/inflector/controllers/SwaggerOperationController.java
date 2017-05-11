@@ -28,14 +28,12 @@ import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -243,18 +241,6 @@ public class SwaggerOperationController extends ReflectionUtils implements Infle
 
 		if (Arrays.asList("post", "put", "patch").contains(ctx.getMethod()) && ctx.getMediaType() == null) {
 			throw new ApiException(new ApiError().code(415).message("The following media-types are accepted: '" + consumes + "'. Please set your 'Content-Type' header accordingly."));
-		}
-
-		if (ctx.getAcceptableMediaTypes() != null) {
-			List<String> acceptableMediaTypes = ctx.getAcceptableMediaTypes().stream()
-					.filter(elt -> elt != null)
-					.map(elt -> elt.toString())
-					.collect(Collectors.toList());
-
-			
-			if (!acceptableMediaTypes.contains("*/*") && Collections.disjoint(acceptableMediaTypes, produces)) {
-				throw new ApiException(new ApiError().code(415).message("Your 'Accept' header contains the media type: '" + ctx.getAcceptableMediaTypes() + "', but only the following media-types are produced: '" + produces + "'"));
-			}
 		}
 
 		if (ctx.getMediaType() != null){
