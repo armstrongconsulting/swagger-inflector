@@ -235,6 +235,7 @@ public class SwaggerOperationController extends ReflectionUtils implements Infle
 		List<Parameter> parameters = operation.getParameters();
 		final RequestContext requestContext = createContext(ctx);
 
+	
 		if (Arrays.asList("post", "put", "patch").contains(ctx.getMethod()) && ctx.getMediaType() == null) {
 			throw new ApiException(new ApiError().code(415).message("The following media-types are accepted: '" + consumes + "'. Please set your 'Content-Type' header accordingly."));
 		}
