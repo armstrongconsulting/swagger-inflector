@@ -251,6 +251,7 @@ public class SwaggerOperationController extends ReflectionUtils implements Infle
 					.map(elt -> elt.toString())
 					.collect(Collectors.toList());
 
+			
 			if (!acceptableMediaTypes.contains("*/*") && Collections.disjoint(acceptableMediaTypes, produces)) {
 				throw new ApiException(new ApiError().code(415).message("Your 'Accept' header contains the media type: '" + ctx.getAcceptableMediaTypes() + "', but only the following media-types are produced: '" + produces + "'"));
 			}
