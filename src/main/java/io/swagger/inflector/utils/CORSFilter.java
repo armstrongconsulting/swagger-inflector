@@ -31,13 +31,21 @@ public class CORSFilter implements javax.servlet.Filter {
  
     
     private Set<String> allowHeaders = new HashSet<String>();
+    private Set<String> allowExposeHeaders = new HashSet<String>();
     
     public CORSFilter allowHeader(String name){
     	allowHeaders.add(name);
     	return this;
     }
    
+    public CORSFilter allowExposeHeader(String name){
+    	allowExposeHeaders.add(name);
+    	return this;
+    }
+   
     public String allow_header;
+    public String allow_expose_headers;
+       
     
     @Override
     public void doFilter(ServletRequest request, ServletResponse response,
@@ -46,6 +54,9 @@ public class CORSFilter implements javax.servlet.Filter {
         res.addHeader("Access-Control-Allow-Origin", "*");
         res.addHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT");
         res.addHeader("Access-Control-Allow-Headers", allow_header);
+        if (allow_expose_headers != null)
+        	res.addHeader("Access-Control-Expose-Headers", allow_expose_headers);
+        
         chain.doFilter(request, response);
     }
 
@@ -60,6 +71,6 @@ public class CORSFilter implements javax.servlet.Filter {
       	allowHeaders.add("Authorization");
       	
       	allow_header = allowHeaders.stream().reduce((t, u) -> t + ", " + u).get();
-       
+      	allow_expose_headers = allowExposeHeaders.stream().reduce((t, u) -> t + ", " + u).get();
     }
 }
