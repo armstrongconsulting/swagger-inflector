@@ -1,14 +1,16 @@
 package io.swagger.test.schema;
 
+import static org.testng.Assert.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
+
+import org.testng.annotations.Test;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
+
 import io.swagger.inflector.schema.SchemaValidator;
 import io.swagger.util.Json;
-import org.testng.annotations.Test;
-
-import static org.testng.Assert.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
 
 public class SchemaValidationTest {
     @Test
@@ -29,7 +31,7 @@ public class SchemaValidationTest {
                 "  }\n" +
                 "}";
 
-        assertTrue(SchemaValidator.validate(user, schema, SchemaValidator.Direction.INPUT));
+        assertTrue(SchemaValidator.validate(user, schema, SchemaValidator.Direction.INPUT).isSuccess());
     }
 
     public void testInvalidPayload() {
@@ -48,7 +50,7 @@ public class SchemaValidationTest {
                 "  }\n" +
                 "}";
 
-        assertFalse(SchemaValidator.validate(user, schema, SchemaValidator.Direction.INPUT));
+        assertFalse(SchemaValidator.validate(user, schema, SchemaValidator.Direction.INPUT).isSuccess());
     }
 
     public void testInvalidPayloadWithRange() {
@@ -70,7 +72,7 @@ public class SchemaValidationTest {
                 "  }\n" +
                 "}";
 
-        assertFalse(SchemaValidator.validate(user, schema, SchemaValidator.Direction.INPUT));
+        assertFalse(SchemaValidator.validate(user, schema, SchemaValidator.Direction.INPUT).isSuccess());
     }
 
     @Test

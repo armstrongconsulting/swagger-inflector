@@ -16,6 +16,13 @@
 
 package io.swagger.inflector.models;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import io.swagger.inflector.validators.ValidationMessage;
+
 public class ApiError {
     private int code;
     private String message;
@@ -25,6 +32,9 @@ public class ApiError {
         return this;
     }
 
+   
+    private List<ValidationMessage> constraintViolations;
+    
     public ApiError message(String message) {
         this.message = message;
         return this;
@@ -42,6 +52,18 @@ public class ApiError {
         return message;
     }
 
+    @JsonProperty("constraint_violations")
+    public List<ValidationMessage> getConstraintViolations(){
+    	return constraintViolations;
+    }
+    
+    public ApiError addConstraintViolation(ValidationMessage m){
+    	if (constraintViolations == null)
+    		constraintViolations = new ArrayList<ValidationMessage>();
+    	constraintViolations.add(m);
+    	return this;
+    	
+    }
     public void setMessage(String message) {
         this.message = message;
     }

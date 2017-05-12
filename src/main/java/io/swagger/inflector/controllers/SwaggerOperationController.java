@@ -56,6 +56,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.github.fge.jsonschema.core.report.ProcessingMessage;
+import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.google.common.io.Files;
 
 import io.swagger.inflector.config.Configuration;
@@ -76,6 +79,7 @@ import io.swagger.inflector.utils.ApiErrorUtils;
 import io.swagger.inflector.utils.ApiException;
 import io.swagger.inflector.utils.ContentTypeSelector;
 import io.swagger.inflector.utils.ReflectionUtils;
+import io.swagger.inflector.validators.ValidationError;
 import io.swagger.inflector.validators.ValidationException;
 import io.swagger.inflector.validators.ValidationMessage;
 import io.swagger.models.Model;
@@ -235,12 +239,11 @@ public class SwaggerOperationController extends ReflectionUtils implements Infle
 		List<Parameter> parameters = operation.getParameters();
 		final RequestContext requestContext = createContext(ctx);
 
-	
 		if (Arrays.asList("post", "put", "patch").contains(ctx.getMethod()) && ctx.getMediaType() == null) {
 			throw new ApiException(new ApiError().code(415).message("The following media-types are accepted: '" + consumes + "'. Please set your 'Content-Type' header accordingly."));
 		}
 
-		if (ctx.getMediaType() != null){
+		if (ctx.getMediaType() != null) {
 			if (!consumes.contains(ctx.getMediaType().toString())) {
 				throw new ApiException(new ApiError().code(415).message("Your 'Content-Type' header contains the media type: '" + ctx.getMediaType() + "', but only the following media-types are accepted: '" + consumes + "'"));
 			}
@@ -460,7 +463,7 @@ public class SwaggerOperationController extends ReflectionUtils implements Infle
 								if (ctx.hasEntity()) {
 									BodyParameter body = (BodyParameter) parameter;
 									o = EntityProcessorFactory.readValue(ctx.getMediaType(), ctx.getEntityStream(), cls);
-																		
+
 									if (o != null) {
 										validate(o, body.getSchema(), SchemaValidator.Direction.INPUT);
 									}
@@ -498,27 +501,14 @@ public class SwaggerOperationController extends ReflectionUtils implements Infle
 			}
 			if (missingParams.size() > 0) {
 				StringBuilder builder = new StringBuilder();
-				builder.append("Input error");
-				if (missingParams.size() > 1) {
-					builder.append("s");
-				}
-				builder.append(": ");
-				int count = 0;
-				for (ValidationMessage message : missingParams) {
-					if (count > 0) {
-						builder.append(", ");
-					}
-					if (message != null && message.getMessage() != null) {
-						builder.append(message.getMessage());
-					} else {
-						builder.append("no additional input");
-					}
-					count += 1;
-				}
-				int statusCode = config.getInvalidRequestStatusCode();
+				builder.append("Your request violated one or more constraints");
 				ApiError error = new ApiError()
-						.code(statusCode)
-						.message(builder.toString());
+						.code(config.getInvalidRequestStatusCode());
+				for (ValidationMessage message : missingParams) {
+					error.addConstraintViolation(message);
+				}
+
+				error.message(builder.toString());
 				throw new ApiException(error);
 			}
 		}
@@ -804,22 +794,48 @@ public class SwaggerOperationController extends ReflectionUtils implements Infle
 		}
 		switch (direction) {
 		case INPUT:
-			if (config.getValidatePayloads().contains(Configuration.Direction.IN)
-					&& !SchemaValidator.validate(value, Json.pretty(schema), direction)) {
-				throw new ApiException(new ApiError()
-						.code(config.getInvalidRequestStatusCode())
-						.message("Input does not match the expected structure"));
+			if (config.getValidatePayloads().contains(Configuration.Direction.IN)) {
+				ProcessingReport report = SchemaValidator.validate(value, Json.pretty(schema), direction);
+				if (!report.isSuccess())
+					throw toApiException(report);
 			}
 			break;
 		case OUTPUT:
 			if (config.getValidatePayloads().contains(Configuration.Direction.OUT)
-					&& !SchemaValidator.validate(value, Json.pretty(schema), direction)) {
+					&& !SchemaValidator.validate(value, Json.pretty(schema), direction).isSuccess()) {
 				throw new ApiException(new ApiError()
 						.code(config.getInvalidRequestStatusCode())
 						.message("The server generated an invalid response"));
 			}
 			break;
 		}
+	}
+
+	private ApiException toApiException(ProcessingReport r) {
+
+		ApiError e = new ApiError().code(400).message("Your data violated one or more constraints");
+		
+		for(ProcessingMessage m :r){
+			JsonNode n = m.asJson();
+			String level = n.get("level").asText();
+			if ("error".equals(level)){
+				ValidationMessage msg = new ValidationMessage();
+				msg.code(ValidationError.UNACCEPTABLE_VALUE);
+				msg.message(n.get("message").asText("Value is not matching the expected schema"));
+				if (!n.at("/instance/pointer").isMissingNode()){
+					String path = n.at("/instance/pointer").asText().replaceAll("/", ".");
+					if (path!=null && path.startsWith("."))
+						path = path.substring(1);
+					msg.path(path);
+				}
+				e.addConstraintViolation(msg);
+			}
+		}
+		
+
+		
+		return new ApiException(e);
+
 	}
 
 	private ControllerFactory getControllerFactory() {

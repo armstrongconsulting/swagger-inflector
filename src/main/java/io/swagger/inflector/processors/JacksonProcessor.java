@@ -22,17 +22,23 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 import io.swagger.inflector.converters.ConversionException;
+import io.swagger.inflector.models.ApiError;
+import io.swagger.inflector.utils.ApiException;
 import io.swagger.inflector.validators.ValidationError;
 import io.swagger.inflector.validators.ValidationMessage;
 import io.swagger.util.Json;
@@ -110,6 +116,16 @@ public class JacksonProcessor implements EntityProcessor {
             if (APPLICATION_YAML_TYPE.isCompatible(mediaType)) {
                 return Yaml.mapper().readValue(entityStream, cls);
             }
+        } catch (JsonMappingException e) {
+   
+            throw new ConversionException()
+                    .message(new ValidationMessage()
+                    		.path(StringUtils.join(e.getPath().stream().map(p -> p.getFieldName()).collect(Collectors.toList()),"."))
+                            .code(ValidationError.UNACCEPTABLE_VALUE)
+                            .message(e.getOriginalMessage()));
+ 
+        } catch (JsonParseException e) {
+            throw new ApiException(new ApiError().code(400).message("The data you provided cannot be parsed into json. " + e.getOriginalMessage()));
         } catch (Exception e) {
             LOGGER.trace("unable to extract entity from content-type `" + mediaType + "` to " + cls.getCanonicalName(), e);
             throw new ConversionException()
