@@ -484,6 +484,7 @@ public class SwaggerOperationController extends ReflectionUtils implements Infle
 								o = validator.convertAndValidate(ctx.getHeaders().get(parameter.getName()), parameter, cls, definitions);
 							}
 						} catch (ConversionException e) {
+							e.getError().setPath(parameter.getIn() + "." + parameter.getName());
 							missingParams.add(e.getError());
 						} catch (ValidationException e) {
 							missingParams.add(e.getValidationMessage());
@@ -503,7 +504,7 @@ public class SwaggerOperationController extends ReflectionUtils implements Infle
 				StringBuilder builder = new StringBuilder();
 				builder.append("Your request violated one or more constraints");
 				ApiError error = new ApiError()
-						.code(config.getInvalidRequestStatusCode());
+						.code(422);
 				for (ValidationMessage message : missingParams) {
 					error.addConstraintViolation(message);
 				}
@@ -813,7 +814,7 @@ public class SwaggerOperationController extends ReflectionUtils implements Infle
 
 	private ApiException toApiException(ProcessingReport r) {
 
-		ApiError e = new ApiError().code(400).message("Your data violated one or more constraints");
+		ApiError e = new ApiError().code(422).message("Your data violated one or more constraints");
 		
 		for(ProcessingMessage m :r){
 			JsonNode n = m.asJson();
