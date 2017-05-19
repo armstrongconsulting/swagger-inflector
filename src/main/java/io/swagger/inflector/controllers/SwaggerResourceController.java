@@ -16,16 +16,6 @@
 
 package io.swagger.inflector.controllers;
 
-import io.swagger.config.FilterFactory;
-import io.swagger.core.filter.SwaggerSpecFilter;
-import io.swagger.inflector.config.SwaggerProcessor;
-import io.swagger.inflector.utils.VendorSpecFilter;
-import io.swagger.models.Swagger;
-import io.swagger.util.Json;
-import org.glassfish.jersey.process.Inflector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,6 +26,17 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+
+import org.glassfish.jersey.process.Inflector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.swagger.config.FilterFactory;
+import io.swagger.core.filter.SwaggerSpecFilter;
+import io.swagger.inflector.SwaggerInflector;
+import io.swagger.inflector.config.SwaggerProcessor;
+import io.swagger.inflector.utils.VendorSpecFilter;
+import io.swagger.models.Swagger;
 
 public class SwaggerResourceController implements Inflector<ContainerRequestContext, Response> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SwaggerResourceController.class);
@@ -79,7 +80,7 @@ public class SwaggerResourceController implements Inflector<ContainerRequestCont
     private Swagger getSwagger() {
         if (!swaggerProcessors.isEmpty()) {
             try {
-                final Swagger swagger = Json.mapper().readValue(Json.mapper().writeValueAsString(this.swagger),
+                final Swagger swagger = SwaggerInflector.mapper().readValue(SwaggerInflector.mapper().writeValueAsString(this.swagger),
                         Swagger.class);
                 for (SwaggerProcessor swaggerProcessor : swaggerProcessors) {
                     swaggerProcessor.process(swagger);

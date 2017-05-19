@@ -82,7 +82,7 @@ public class SwaggerInflector extends ResourceConfig {
     private Map<String, List<String>> missingOperations = new HashMap<String, List<String>>();
     private Set<String> unimplementedMappedModels = new TreeSet<String>();
 
-    private ObjectMapper objectMapper;
+    private static ObjectMapper objectMapper;
 
     public SwaggerInflector(Configuration configuration) {
         this(configuration, Json.mapper());
@@ -90,7 +90,14 @@ public class SwaggerInflector extends ResourceConfig {
 
     public SwaggerInflector(Configuration configuration,ObjectMapper objectMapper)
     {
-        this.objectMapper = objectMapper;
+        SwaggerInflector.objectMapper = objectMapper;
+        
+        SimpleModule simpleModule = new SimpleModule();
+        simpleModule.addSerializer(new JsonNodeExampleSerializer());
+        objectMapper.registerModule(simpleModule);
+
+        
+        
         init(configuration);
     }
 
@@ -438,4 +445,8 @@ public class SwaggerInflector extends ResourceConfig {
         unimplementedMappedModels.addAll(controller.getUnimplementedMappedModels());
         builder.addMethod(method).handledBy(controller);
     }
+
+	public static ObjectMapper mapper() {
+		return SwaggerInflector.objectMapper;
+	}
 }

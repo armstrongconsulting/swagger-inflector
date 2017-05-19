@@ -13,9 +13,9 @@ import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 
+import io.swagger.inflector.SwaggerInflector;
 import io.swagger.inflector.utils.ApiErrorUtils;
 import io.swagger.inflector.utils.ApiException;
-import io.swagger.util.Json;
 
 public class SchemaValidator {
 	static Map<String, JsonSchema> SCHEMA_CACHE = new HashMap<String, JsonSchema>();
@@ -28,9 +28,9 @@ public class SchemaValidator {
 
 	public static ProcessingReport validate(Object o, String schema, Direction direction) {
 		try {
-			JsonNode schemaObject = Json.mapper().readTree(schema);
+			JsonNode schemaObject = SwaggerInflector.mapper().readTree(schema);
 			JsonSchemaFactory factory = JsonSchemaFactory.byDefault();
-			JsonNode content = Json.mapper().convertValue(o, JsonNode.class);
+			JsonNode content = SwaggerInflector.mapper().convertValue(o, JsonNode.class);
 			com.github.fge.jsonschema.main.JsonSchema jsonSchema = factory.getJsonSchema(schemaObject);
 
 			ProcessingReport report = jsonSchema.validate(content);
@@ -51,7 +51,7 @@ public class SchemaValidator {
 		JsonSchema output = SCHEMA_CACHE.get(schema);
 
 		if (output == null) {
-			JsonNode schemaObject = Json.mapper().readTree(schema);
+			JsonNode schemaObject = SwaggerInflector.mapper().readTree(schema);
 			JsonSchemaFactory factory = JsonSchemaFactory.byDefault();
 			com.github.fge.jsonschema.main.JsonSchema jsonSchema = factory.getJsonSchema(schemaObject);
 			SCHEMA_CACHE.put(schema, jsonSchema);

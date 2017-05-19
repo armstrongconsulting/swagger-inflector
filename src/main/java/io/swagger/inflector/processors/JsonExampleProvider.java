@@ -16,37 +16,33 @@
 
 package io.swagger.inflector.processors;
 
-import io.swagger.inflector.examples.models.Example;
-import io.swagger.util.Json;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
+
+import io.swagger.inflector.SwaggerInflector;
+import io.swagger.inflector.examples.models.Example;
 
 @Provider
-@Produces({MediaType.APPLICATION_JSON})
+@Produces({ MediaType.APPLICATION_JSON })
 public class JsonExampleProvider extends AbstractExampleProvider implements MessageBodyWriter<Example> {
-    @Override
-    public void writeTo(Example data,
-                        Class<?> type,
-                        Type genericType,
-                        Annotation[] annotations,
-                        MediaType mediaType,
-                        MultivaluedMap<String, Object> headers,
-                        OutputStream out) throws IOException {
-      if (mediaType.isCompatible(MediaType.APPLICATION_JSON_TYPE)) {
-        if (prettyPrint) {
-            out.write(Json.pretty().writeValueAsString(data).getBytes("utf-8"));
-        } else {
-            out.write(Json.mapper().writeValueAsString(data).getBytes("utf-8"));
-        }
-      }
-    }
+	@Override
+	public void writeTo(Example data,
+			Class<?> type,
+			Type genericType,
+			Annotation[] annotations,
+			MediaType mediaType,
+			MultivaluedMap<String, Object> headers,
+			OutputStream out) throws IOException {
+		if (mediaType.isCompatible(MediaType.APPLICATION_JSON_TYPE)) {
+			out.write(SwaggerInflector.mapper().writeValueAsString(data).getBytes("utf-8"));
+		}
+	}
 }
-

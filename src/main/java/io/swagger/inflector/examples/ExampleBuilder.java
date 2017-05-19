@@ -16,6 +16,18 @@
 
 package io.swagger.inflector.examples;
 
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.swagger.inflector.SwaggerInflector;
 import io.swagger.inflector.examples.models.ArrayExample;
 import io.swagger.inflector.examples.models.BooleanExample;
 import io.swagger.inflector.examples.models.DecimalExample;
@@ -48,17 +60,6 @@ import io.swagger.models.properties.Property;
 import io.swagger.models.properties.RefProperty;
 import io.swagger.models.properties.StringProperty;
 import io.swagger.models.properties.UUIDProperty;
-import io.swagger.util.Json;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class ExampleBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExampleBuilder.class);
@@ -303,7 +304,7 @@ public class ExampleBuilder {
         } else if (property instanceof ObjectProperty) {
             if (example != null) {
                 try {
-                    output = Json.mapper().readValue(example.toString(), ObjectExample.class);
+                    output = SwaggerInflector.mapper().readValue(example.toString(), ObjectExample.class);
                 } catch (IOException e) {
                     LOGGER.error("unable to convert `" + example + "` to JsonNode");
                     output = new ObjectExample();
@@ -387,7 +388,7 @@ public class ExampleBuilder {
                     }
                     if (model.getExample() != null) {
                         try {
-                            Example n = Json.mapper().readValue(model.getExample().toString(), Example.class);
+                            Example n = SwaggerInflector.mapper().readValue(model.getExample().toString(), Example.class);
                             output = n;
                         } catch (IOException e) {
                             LOGGER.error("unable to convert value", e);
@@ -480,7 +481,7 @@ public class ExampleBuilder {
         if (model.getExample() != null) {
             try {
                 String str = model.getExample().toString();
-                output = Json.mapper().readValue(str, ObjectExample.class);
+                output = SwaggerInflector.mapper().readValue(str, ObjectExample.class);
             } catch (IOException e) {
                 return null;
             }

@@ -36,12 +36,12 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
+import io.swagger.inflector.SwaggerInflector;
 import io.swagger.inflector.converters.ConversionException;
 import io.swagger.inflector.models.ApiError;
 import io.swagger.inflector.utils.ApiException;
 import io.swagger.inflector.validators.ValidationError;
 import io.swagger.inflector.validators.ValidationMessage;
-import io.swagger.util.Json;
 import io.swagger.util.Yaml;
 
 public class JacksonProcessor implements EntityProcessor {
@@ -84,7 +84,7 @@ public class JacksonProcessor implements EntityProcessor {
                           JavaType javaType) {
         try {
             if (APPLICATION_MERGE_PATCH_JSON_TYPE.isCompatible(mediaType) || MediaType.APPLICATION_JSON_TYPE.isCompatible(mediaType)) {
-                return Json.mapper().readValue(entityStream, javaType);
+                return SwaggerInflector.mapper().readValue(entityStream, javaType);
             }
             if (MediaType.APPLICATION_XML_TYPE.isCompatible(mediaType)) {
                 return XML.readValue(entityStream, javaType);
@@ -108,7 +108,7 @@ public class JacksonProcessor implements EntityProcessor {
                 return outputStream.toString();
             }
             if (APPLICATION_MERGE_PATCH_JSON_TYPE.isCompatible(mediaType) || MediaType.APPLICATION_JSON_TYPE.isCompatible(mediaType)) {
-                return Json.mapper().readValue(entityStream, cls);
+                return SwaggerInflector.mapper().readValue(entityStream, cls);
             }
             if (MediaType.APPLICATION_XML_TYPE.isCompatible(mediaType)) {
                 return XML.readValue(entityStream, cls);

@@ -16,9 +16,6 @@
 
 package io.swagger.inflector.processors;
 
-import io.swagger.inflector.examples.models.Example;
-import io.swagger.util.Json;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
@@ -30,19 +27,13 @@ import javax.ws.rs.ext.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import io.swagger.inflector.examples.models.Example;
 
 @Provider
 @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, "application/yaml"})
 public abstract class AbstractExampleProvider implements MessageBodyWriter<Example> {
     static boolean prettyPrint = false;
     Logger LOGGER = LoggerFactory.getLogger(AbstractExampleProvider.class);
-
-    static {
-        SimpleModule simpleModule = new SimpleModule();
-        simpleModule.addSerializer(new JsonNodeExampleSerializer());
-        Json.mapper().registerModule(simpleModule);
-    }
 
     public static void setPrettyPrint(boolean shouldPrettyPrint) {
         prettyPrint = shouldPrettyPrint;

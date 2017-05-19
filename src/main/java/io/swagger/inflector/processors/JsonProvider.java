@@ -1,11 +1,12 @@
 package io.swagger.inflector.processors;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import io.swagger.util.Json;
-
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
+import io.swagger.inflector.SwaggerInflector;
 
 @Provider
 public class JsonProvider implements ContextResolver<ObjectMapper> {
@@ -13,7 +14,7 @@ public class JsonProvider implements ContextResolver<ObjectMapper> {
     private boolean prettyPrint;
 
     public JsonProvider() {
-        objectMapper = Json.mapper();
+        objectMapper = SwaggerInflector.mapper();
     }
 
     public JsonProvider(boolean prettyPrint) {

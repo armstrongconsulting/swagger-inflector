@@ -16,27 +16,56 @@
 
 package io.swagger.inflector.utils;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.type.TypeFactory;
-import io.swagger.inflector.Constants;
-import io.swagger.inflector.config.Configuration;
-import io.swagger.inflector.models.RequestContext;
-import io.swagger.models.*;
-import io.swagger.models.parameters.BodyParameter;
-import io.swagger.models.parameters.Parameter;
-import io.swagger.models.parameters.SerializableParameter;
-import io.swagger.models.properties.*;
-import io.swagger.util.Json;
+import java.io.File;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.UUID;
+
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.math.BigDecimal;
-import java.util.*;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.type.TypeFactory;
+
+import io.swagger.inflector.Constants;
+import io.swagger.inflector.SwaggerInflector;
+import io.swagger.inflector.config.Configuration;
+import io.swagger.inflector.models.RequestContext;
+import io.swagger.models.ArrayModel;
+import io.swagger.models.Model;
+import io.swagger.models.ModelImpl;
+import io.swagger.models.Operation;
+import io.swagger.models.RefModel;
+import io.swagger.models.parameters.BodyParameter;
+import io.swagger.models.parameters.Parameter;
+import io.swagger.models.parameters.SerializableParameter;
+import io.swagger.models.properties.ArrayProperty;
+import io.swagger.models.properties.BooleanProperty;
+import io.swagger.models.properties.ByteArrayProperty;
+import io.swagger.models.properties.DateProperty;
+import io.swagger.models.properties.DateTimeProperty;
+import io.swagger.models.properties.DecimalProperty;
+import io.swagger.models.properties.DoubleProperty;
+import io.swagger.models.properties.EmailProperty;
+import io.swagger.models.properties.FileProperty;
+import io.swagger.models.properties.FloatProperty;
+import io.swagger.models.properties.IntegerProperty;
+import io.swagger.models.properties.LongProperty;
+import io.swagger.models.properties.MapProperty;
+import io.swagger.models.properties.ObjectProperty;
+import io.swagger.models.properties.Property;
+import io.swagger.models.properties.PropertyBuilder;
+import io.swagger.models.properties.RefProperty;
+import io.swagger.models.properties.StringProperty;
+import io.swagger.models.properties.UUIDProperty;
 
 public class ReflectionUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReflectionUtils.class);
@@ -64,7 +93,7 @@ public class ReflectionUtils {
     }
 
     public JavaType[] getOperationParameterClasses(Operation operation, Map<String, Model> definitions) {
-        TypeFactory tf = Json.mapper().getTypeFactory();
+        TypeFactory tf = SwaggerInflector.mapper().getTypeFactory();
 
         JavaType[] jt = new JavaType[operation.getParameters().size() + 1];
         int i = 0;
@@ -101,7 +130,7 @@ public class ReflectionUtils {
     }
 
     public JavaType getTypeFromProperty(String type, String format, Property property, Map<String, Model> definitions) {
-        TypeFactory tf = Json.mapper().getTypeFactory();
+        TypeFactory tf = SwaggerInflector.mapper().getTypeFactory();
 
 
         if(property instanceof ArrayProperty) {
@@ -196,7 +225,7 @@ public class ReflectionUtils {
     }
     
     public JavaType getTypeFromModel(String name, Model model, Map<String, Model> definitions) {
-        TypeFactory tf = Json.mapper().getTypeFactory();
+        TypeFactory tf = SwaggerInflector.mapper().getTypeFactory();
 
         if(model instanceof RefModel && "".equals(name)) {
             RefModel ref = (RefModel) model;
@@ -386,7 +415,7 @@ public class ReflectionUtils {
     }
 
     private JavaType getTypeFromModelName(String name) {
-        final TypeFactory tf = Json.mapper().getTypeFactory();
+        final TypeFactory tf = SwaggerInflector.mapper().getTypeFactory();
         // it's legal to have quotes around the model name so trim them
         String modelName = name.replaceAll("^\"|\"$", "");
         Class<?> cls = loadClass(modelName);

@@ -1,17 +1,12 @@
 package io.swagger.inflector.converters;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.type.TypeFactory;
-import io.swagger.inflector.utils.ReflectionUtils;
-import io.swagger.inflector.validators.ValidationError;
-import io.swagger.inflector.validators.ValidationMessage;
-import io.swagger.models.Model;
-import io.swagger.models.parameters.Parameter;
-import io.swagger.models.parameters.QueryParameter;
-import io.swagger.models.parameters.SerializableParameter;
-import io.swagger.models.properties.ArrayProperty;
-import io.swagger.models.properties.Property;
-import io.swagger.util.Json;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -21,8 +16,19 @@ import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.*;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.type.TypeFactory;
+
+import io.swagger.inflector.SwaggerInflector;
+import io.swagger.inflector.utils.ReflectionUtils;
+import io.swagger.inflector.validators.ValidationError;
+import io.swagger.inflector.validators.ValidationMessage;
+import io.swagger.models.Model;
+import io.swagger.models.parameters.Parameter;
+import io.swagger.models.parameters.QueryParameter;
+import io.swagger.models.parameters.SerializableParameter;
+import io.swagger.models.properties.ArrayProperty;
+import io.swagger.models.properties.Property;
 
 public class DefaultConverter extends ReflectionUtils implements Converter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConverter.class);
@@ -79,7 +85,7 @@ public class DefaultConverter extends ReflectionUtils implements Converter {
                 return output;
             }
         } else if (parameter instanceof SerializableParameter) {
-            TypeFactory tf = Json.mapper().getTypeFactory();
+            TypeFactory tf = SwaggerInflector.mapper().getTypeFactory();
             SerializableParameter sp = (SerializableParameter) parameter;
             return cast(o.get(0), sp.getItems(), tf.constructType(cls));
         }
