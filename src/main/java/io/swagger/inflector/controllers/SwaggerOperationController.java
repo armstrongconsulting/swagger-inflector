@@ -244,7 +244,10 @@ public class SwaggerOperationController extends ReflectionUtils implements Infle
 		}
 
 		if (ctx.getMediaType() != null) {
-			if (!consumes.contains(ctx.getMediaType().toString())) {
+			String mediaType = ctx.getMediaType().toString();
+			String mediaTypeWithoutCharset = mediaType.contains(";") ? mediaType.substring(0, mediaType.indexOf(";")) : mediaType;
+
+			if (!consumes.contains(mediaType) && !consumes.contains(mediaTypeWithoutCharset)) {
 				throw new ApiException(new ApiError().code(415).message("Your 'Content-Type' header contains the media type: '" + ctx.getMediaType() + "', but only the following media-types are accepted: '" + consumes + "'"));
 			}
 		}
@@ -815,26 +818,24 @@ public class SwaggerOperationController extends ReflectionUtils implements Infle
 	private ApiException toApiException(ProcessingReport r) {
 
 		ApiError e = new ApiError().code(422).message("Your data violated one or more constraints");
-		
-		for(ProcessingMessage m :r){
+
+		for (ProcessingMessage m : r) {
 			JsonNode n = m.asJson();
 			String level = n.get("level").asText();
-			if ("error".equals(level)){
+			if ("error".equals(level)) {
 				ValidationMessage msg = new ValidationMessage();
 				msg.code(ValidationError.UNACCEPTABLE_VALUE);
 				msg.message(n.get("message").asText("Value is not matching the expected schema"));
-				if (!n.at("/instance/pointer").isMissingNode()){
+				if (!n.at("/instance/pointer").isMissingNode()) {
 					String path = n.at("/instance/pointer").asText().replaceAll("/", ".");
-					if (path!=null && path.startsWith("."))
+					if (path != null && path.startsWith("."))
 						path = path.substring(1);
 					msg.path(path);
 				}
 				e.addConstraintViolation(msg);
 			}
 		}
-		
 
-		
 		return new ApiException(e);
 
 	}
