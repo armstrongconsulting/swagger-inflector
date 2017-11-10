@@ -22,18 +22,17 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonMappingException.Reference;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 import io.swagger.inflector.SwaggerInflector;
@@ -118,9 +117,15 @@ public class JacksonProcessor implements EntityProcessor {
             }
         } catch (JsonMappingException e) {
    
-            throw new ConversionException()
+        	StringBuilder path = new StringBuilder();
+        	for (Reference r : e.getPath()){
+        		if (path.length()>0)path.append(".");
+        		path.append(r.getFieldName());
+        	}
+            
+        	throw new ConversionException()
                     .message(new ValidationMessage()
-                    		.path(StringUtils.join(e.getPath().stream().map(p -> p.getFieldName()).collect(Collectors.toList()),"."))
+                    		.path(path.toString())
                             .code(ValidationError.UNACCEPTABLE_VALUE)
                             .message(e.getOriginalMessage()));
  

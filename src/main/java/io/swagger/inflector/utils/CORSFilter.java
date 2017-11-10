@@ -70,7 +70,17 @@ public class CORSFilter implements javax.servlet.Filter {
       	allowHeaders.add("api_key");
       	allowHeaders.add("Authorization");
       	
-      	allow_header = allowHeaders.stream().reduce((t, u) -> t + ", " + u).get();
-      	allow_expose_headers = allowExposeHeaders.stream().reduce((t, u) -> t + ", " + u).get();
+      	allow_header = "";
+      	for (String h: allowHeaders){
+      		if (!allow_header.isEmpty()) allow_header+= ", ";
+      		allow_header += h;
+      	}
+      	
+      	allow_expose_headers = "";
+      	for (String h: allowExposeHeaders){
+      		if (!allow_expose_headers.isEmpty()) allow_expose_headers+= ", ";
+      		allow_expose_headers += h;
+      	}
+      	
     }
 }
